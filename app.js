@@ -144,7 +144,7 @@ async function loadData() {
     allEquipos = rows
       .filter(r => r[1] && r[1].toString().trim())
       .map((r, i) => ({
-        rowIndex:  i + 2,           // fila real en el Sheet
+        rowIndex:  i + 4,           // fila real en el Sheet (empieza en fila 4)
         equipo:    r[1]  || '',     // tipo (Camión, Excavadora, etc.)
         codigo:    r[2]  || '',
         marca:     r[3]  || '',

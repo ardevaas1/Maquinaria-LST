@@ -138,7 +138,7 @@ async function loadData() {
     // A=N° B=EQUIPO C=CODIGO D=MARCA E=MODELO F=AÑO G=COLOR H=PATENTE
     // I=ESTADO J=UBICACION K=HOROMETRO L=PROX_MANT M=ULT_MANT
     // N=SOAP O=PERMISO P=REVISION Q=? R=? S=OBS T=MANT_CADA U=PROPIETARIO V=RUT W=LINK_PLANILLA
-    const rows = await fetchSheet(`'${CONFIG.SHEET_MAQUINARIA}'!A2:W200`);
+    const rows = await fetchSheet(`'${CONFIG.SHEET_MAQUINARIA}'!A4:W200`);
     splash(70, 'Procesando equipos...');
 
     allEquipos = rows

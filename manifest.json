@@ -1,0 +1,17 @@
+{
+  "name": "Flota & Equipos",
+  "short_name": "Flota",
+  "description": "Gestión de flota y maquinaria",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#1a1f2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

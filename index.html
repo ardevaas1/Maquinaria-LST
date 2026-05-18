@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="LST Flota">
+<title>LST Constructora — Flota</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Splash -->
+  <div id="splash" class="splash">
+    <img src="logo.png" class="splash-logo" alt="LST Constructora">
+    <div class="splash-name">Flota &amp; Equipos</div>
+    <div class="splash-bar"><div id="splash-progress" class="splash-fill"></div></div>
+    <div class="splash-hint" id="splash-hint">Cargando datos...</div>
+  </div>
+
+  <!-- Main -->
+  <div id="main" class="main hidden">
+
+    <header class="header">
+      <img src="logo.png" class="header-logo" alt="LST">
+      <div class="header-center">
+        <div class="header-title" id="page-title">Inicio</div>
+        <div class="header-sub">Constructora LST</div>
+      </div>
+      <button class="header-btn" onclick="loadData()" id="refresh-btn">↻</button>
+    </header>
+
+    <div class="pages">
+
+      <!-- Dashboard -->
+      <div id="page-dashboard" class="page active">
+        <div class="stats-row">
+          <div class="stat green" onclick="goEquipos('op')">
+            <div class="stat-n" id="stat-op">—</div>
+            <div class="stat-l">Operativos</div>
+          </div>
+          <div class="stat amber" onclick="goEquipos('obs')">
+            <div class="stat-n" id="stat-obs">—</div>
+            <div class="stat-l">Con obs.</div>
+          </div>
+          <div class="stat red" onclick="goEquipos('det')">
+            <div class="stat-n" id="stat-det">—</div>
+            <div class="stat-l">Detenidos</div>
+          </div>
+          <div class="stat blue">
+            <div class="stat-n" id="stat-docs">—</div>
+            <div class="stat-l">Docs venc.</div>
+          </div>
+        </div>
+        <div class="sec-label">⚠️ Alertas urgentes</div>
+        <div id="dash-alerts"></div>
+        <div class="sec-label">🔧 Mantenciones próximas</div>
+        <div id="dash-mant"></div>
+      </div>
+
+      <!-- Equipos -->
+      <div id="page-equipos" class="page">
+        <div class="search-area">
+          <div class="searchbox">
+            <span class="search-ic">🔍</span>
+            <input type="text" id="search-input" placeholder="Buscar marca, modelo, patente..." oninput="renderEquipos()">
+          </div>
+          <div class="chips">
+            <button class="chip active" onclick="setFilter('todos',this)">Todos</button>
+            <button class="chip" onclick="setFilter('op',this)">Operativos</button>
+            <button class="chip" onclick="setFilter('obs',this)">Con obs.</button>
+            <button class="chip" onclick="setFilter('det',this)">Detenidos</button>
+            <button class="chip" onclick="setFilter('rep',this)">Reparación</button>
+          </div>
+        </div>
+        <div id="equipos-list"></div>
+      </div>
+
+      <!-- Alertas -->
+      <div id="page-alertas" class="page">
+        <div class="sec-label">🔴 Documentos vencidos</div>
+        <div id="alertas-vencidos"></div>
+        <div class="sec-label">🟡 Vencen pronto (≤60 días)</div>
+        <div id="alertas-pronto"></div>
+        <div class="sec-label">🟢 Al día</div>
+        <div id="alertas-ok"></div>
+      </div>
+
+      <!-- Mantenciones -->
+      <div id="page-mantenciones" class="page">
+        <button class="btn-add" onclick="openMantPanel(null)">+ Registrar mantención</button>
+        <div class="sec-label">📅 Próximas</div>
+        <div id="mant-proximas"></div>
+        <div class="sec-label">📋 Historial</div>
+        <div id="mant-historial"></div>
+      </div>
+
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" onclick="showPage('dashboard',this)">
+        <span class="nv-ic">🏠</span><span class="nv-lb">Inicio</span>
+      </button>
+      <button class="nav-item" onclick="showPage('equipos',this)">
+        <span class="nv-ic">📋</span><span class="nv-lb">Equipos</span>
+      </button>
+      <button class="nav-item" onclick="showPage('alertas',this)">
+        <span class="nv-ic">🔔</span><span class="nv-lb">Alertas</span>
+        <span class="nav-dot" id="nav-dot" style="display:none"></span>
+      </button>
+      <button class="nav-item" onclick="showPage('mantenciones',this)">
+        <span class="nv-ic">🔧</span><span class="nv-lb">Mantención</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- Panel: Ficha -->
+  <div id="panel-ficha" class="panel hidden">
+    <div class="panel-bar">
+      <button class="pnl-back" onclick="closePanel('panel-ficha')">‹ Volver</button>
+      <span id="ficha-title" class="pnl-title"></span>
+      <button class="pnl-action" onclick="openEditPanel()">Editar</button>
+    </div>
+    <div class="panel-body" id="ficha-body"></div>
+  </div>
+
+  <!-- Panel: Editar -->
+  <div id="panel-edit" class="panel hidden">
+    <div class="panel-bar">
+      <button class="pnl-back" onclick="closePanel('panel-edit')">‹ Cancelar</button>
+      <span class="pnl-title">Editar equipo</span>
+      <button class="pnl-action" onclick="saveEquipo()">Guardar</button>
+    </div>
+    <div class="panel-body">
+      <input type="hidden" id="edit-row">
+      <input type="hidden" id="edit-patente">
+
+      <div class="form-sec">Estado y ubicación</div>
+      <div class="form-group">
+        <label>Estado operativo</label>
+        <select id="edit-estado">
+          <option>OPERATIVO</option>
+          <option>OPERATIVO (CON OBSERVACIONES)</option>
+          <option>EN REPARACIÓN</option>
+          <option>DETENIDO</option>
+          <option>DETENIDA</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ubicación actual</label>
+        <input type="text" id="edit-ubicacion" placeholder="Ej: Colima, Freire...">
+      </div>
+
+      <div class="form-sec">Horómetro / Odómetro</div>
+      <div class="form-group">
+        <label>Horómetro / Odómetro actual</label>
+        <input type="number" id="edit-horometro" placeholder="Ej: 12500">
+      </div>
+      <div class="form-group">
+        <label>Próxima mantención (en)</label>
+        <input type="number" id="edit-proxima" placeholder="Ej: 13000">
+      </div>
+      <div class="form-group">
+        <label>Última mantención (en)</label>
+        <input type="number" id="edit-ultima" placeholder="Ej: 12000">
+      </div>
+
+      <div class="form-sec">Documentos — fecha de vencimiento (dd/mm/aaaa)</div>
+      <div class="form-group">
+        <label>SOAP</label>
+        <input type="text" id="edit-soap" placeholder="Ej: 31/12/2025">
+      </div>
+      <div class="form-group">
+        <label>Permiso de circulación</label>
+        <input type="text" id="edit-permiso" placeholder="Ej: 31/03/2026">
+      </div>
+      <div class="form-group">
+        <label>Revisión técnica</label>
+        <input type="text" id="edit-revision" placeholder="Ej: 15/06/2026">
+      </div>
+
+      <div class="form-sec">Observaciones</div>
+      <div class="form-group">
+        <label>Observaciones generales</label>
+        <textarea id="edit-obs" placeholder="Fallas, pendientes, notas..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: Mantención -->
+  <div id="panel-mant" class="panel hidden">
+    <div class="panel-bar">
+      <button class="pnl-back" onclick="closePanel('panel-mant')">‹ Cancelar</button>
+      <span class="pnl-title">Registrar mantención</span>
+      <button class="pnl-action" onclick="saveMant()">Guardar</button>
+    </div>
+    <div class="panel-body">
+      <div class="form-group">
+        <label>Equipo</label>
+        <select id="mant-equipo"></select>
+      </div>
+      <div class="form-group">
+        <label>Horómetro / Odómetro actual</label>
+        <input type="number" id="mant-horometro" placeholder="Ej: 12500">
+      </div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="mant-fecha">
+      </div>
+      <div class="form-group">
+        <label>Tipo de mantención</label>
+        <select id="mant-tipo">
+          <option>Preventiva</option>
+          <option>Correctiva</option>
+          <option>Cambio de aceite</option>
+          <option>Cambio de filtros</option>
+          <option>Revisión general</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea id="mant-obs" placeholder="Detalle lo realizado..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
